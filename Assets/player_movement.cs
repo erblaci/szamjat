@@ -19,27 +19,28 @@ public class player_movement : MonoBehaviour
     
     private void Awake()
     {
+        
         rb = GetComponent<Rigidbody2D>();
     }
 
     private void Update()
     {
-        Dust();
+        
         GetInput();
         MovePlayer();
-        
+        Dust();
     }
 
     private void Dust()
     {
         if (runstate>1&&!dust_particle.isPlaying)
         {
-            
+            Debug.Log("Dust");
             dust_particle.Play();
         }
-        else
+        else if(runstate==1&&dust_particle.isPlaying)
         {
-            dust_particle.Stop();
+           dust_particle.Stop();
         }
     }
     private bool isOnGround()
@@ -69,7 +70,7 @@ public class player_movement : MonoBehaviour
         int runstate_preserved = runstate;
        
         isChangingDirection = true;
-        if (rb.linearVelocityX!=null&&rb.linearVelocityX<99)
+        if (rb.linearVelocityX!=null&&rb.linearVelocityX!=Mathf.Infinity&&rb.linearVelocityX!=-Mathf.Infinity)
         {
             rb.linearVelocityX=rb.linearVelocityX/(4-runstate_preserved);
         }
@@ -166,9 +167,10 @@ public class player_movement : MonoBehaviour
             rb.AddForce(new Vector2(0,0.015f*runstatePreserve), ForceMode2D.Impulse);
             yield return new WaitForSeconds(0.01f);
         }
-        yield return new WaitForSeconds(0.2f);
         runstate = runstatePreserve;
-        rb.AddForce(direction*walkspeed*((runstate+1)/2), ForceMode2D.Force);
+        yield return new WaitForSeconds(0.2f);
+       
+        rb.AddForce(direction*walkspeed*((runstate+1)), ForceMode2D.Force);
         yield return new WaitForSeconds(0.2f);
         rb.AddForce(new Vector2(0,-0.5f), ForceMode2D.Impulse);
         isWallClimbing = false;
