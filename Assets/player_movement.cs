@@ -31,11 +31,11 @@ public class player_movement : MonoBehaviour
         Dust();
     }
 
-    private void Dust()
+    private void Dust()//Ha elég gyorsan fut a játékos porzik a nyoma
     {
         if (runstate>1&&!dust_particle.isPlaying)
         {
-            Debug.Log("Dust");
+          //  Debug.Log("Dust");
             dust_particle.Play();
         }
         else if(runstate==1&&dust_particle.isPlaying)
