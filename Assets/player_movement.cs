@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class player_movement : MonoBehaviour
 {
@@ -196,5 +197,12 @@ public class player_movement : MonoBehaviour
     {
         Debug.DrawRay(transform.position+transform.up*-0.5f, direction*1f, Color.red);
         Debug.DrawRay(transform.position, transform.up*-0.6f, Color.green);
+    }
+    private void OnTriggerEnter2D(Collider2D other) //https://www.youtube.com/watch?v=ztJPnBpae_0
+    {
+        if (other.tag == "Map_exit")  //ha a cube tagje Map_exit
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1); //Akkor a mostanitól eggyel kövi scenere ugrás
+        }
     }
 }
