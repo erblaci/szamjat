@@ -15,6 +15,7 @@ public class player_movement : MonoBehaviour
     bool isWallClimbing = false;
     bool isChangingDirection = false;
    [SerializeField] private ParticleSystem dust_particle;
+   [SerializeField] private BoxCollider2D grab_hitbox;
     
     
     private void Awake()
