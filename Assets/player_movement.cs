@@ -108,9 +108,18 @@ public class player_movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space)&&canJump)
         {
             //Debug.Log(canJump);
-            canJump = false;
-            rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
-            canJump = true;
+            if (!isWallClimbing)
+            {
+                canJump = false;
+                rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
+                canJump = true;
+            }
+            else if(isWallClimbing)
+            {
+                direction = -direction;
+                rb.AddForce(direction*walkspeed*((runstate+1)/2),ForceMode2D.Force);
+            }
+            
         }
         if (Input.GetKey(KeyCode.LeftShift))
         {
