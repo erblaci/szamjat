@@ -431,6 +431,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dust_particle: {fileID: 608699664}
   grab_hitbox: {fileID: 0}
+  wallRunSpeed: 7
+  wallJumpForce: 8
+  wallDetectionDistance: 1
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!58 &222279791
 CircleCollider2D:
   m_ObjectHideFlags: 0
