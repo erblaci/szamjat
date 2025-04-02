@@ -18,7 +18,14 @@ public class player_movement : MonoBehaviour
    [SerializeField] private ParticleSystem dust_particle;
    [SerializeField] private BoxCollider2D grab_hitbox;
     
-    
+   public float wallRunSpeed = 10f;
+   public float wallJumpForce = 8f;
+   public float wallDetectionDistance = 2f;
+   public LayerMask wallLayer;
+   
+   
+   private bool isTouchingWall;
+   private Vector3 wallNormal;
     private void Awake()
     {
         
@@ -31,8 +38,52 @@ public class player_movement : MonoBehaviour
         GetInput();
         MovePlayer();
         Dust();
+        CheckForWall();
+        HandleWallRun();
+        
     }
 
+    void CheckForWall()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.right, out hit, wallDetectionDistance, wallLayer))
+        {
+            isTouchingWall = true;
+            wallNormal = hit.normal;
+        }
+        else if (Physics.Raycast(transform.position, -transform.right, out hit, wallDetectionDistance, wallLayer))
+        {
+            isTouchingWall = true;
+            wallNormal = hit.normal;
+        }
+        else
+        {
+            isTouchingWall = false;
+        }
+    }
+
+    void HandleWallRun()
+    {
+        if (isNextToWall() && isRunning)
+        {
+            isWallClimbing = true;
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, wallRunSpeed);
+        }
+        else
+        {
+            if (isWallClimbing)
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
+                isWallClimbing = false;
+            }
+          
+        }
+    }
+
+    
+    
+    
+    
     private void Dust()//Ha elég gyorsan fut a játékos porzik a nyoma
     {
         if (runstate>1&&!dust_particle.isPlaying)
@@ -62,6 +113,7 @@ public class player_movement : MonoBehaviour
 
         if (hit.collider != null)
         {
+            wallNormal = hit.normal;
             return true;
         }
         return false;
@@ -116,8 +168,9 @@ public class player_movement : MonoBehaviour
             }
             else if(isWallClimbing)
             {
-                direction = -direction;
-                rb.AddForce(direction*walkspeed*((runstate+1)/2),ForceMode2D.Force);
+                Vector3 jumpDirection = wallNormal + Vector3.up;
+                rb.linearVelocity = new Vector3(jumpDirection.x * wallJumpForce, wallJumpForce, jumpDirection.z * wallJumpForce);
+                isWallClimbing = false;
             }
             
         }
@@ -139,7 +192,7 @@ public class player_movement : MonoBehaviour
 
         
 
-        if (isNextToWall()&&!isOnGround()&&isRunning&&!isWallClimbing)
+     /*   if (isNextToWall()&&!isOnGround()&&isRunning&&!isWallClimbing)
         {
             isWallClimbing = true;
             StartCoroutine(WallClimbing());
@@ -148,7 +201,7 @@ public class player_movement : MonoBehaviour
         {
             isWallClimbing = false;
             StopCoroutine(WallClimbing());
-        }
+        }*/
     }
 
     public IEnumerator ChangeRunstate()
