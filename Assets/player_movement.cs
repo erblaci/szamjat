@@ -18,11 +18,11 @@ public class player_movement : MonoBehaviour
    [SerializeField] private ParticleSystem dust_particle;
    [SerializeField] private BoxCollider2D grab_hitbox;
     
-   public float wallRunSpeed = 10f;
+   public float wallRunSpeed = 20f;
    public float wallJumpForce = 8f;
    public float wallDetectionDistance = 2f;
    public LayerMask wallLayer;
-   
+   private float preserved_velocity = 0;
    
    private bool isTouchingWall;
    private Vector3 wallNormal;
@@ -66,22 +66,28 @@ public class player_movement : MonoBehaviour
     {
         if (isNextToWall() && isRunning)
         {
+            preserved_velocity = direction.x * walkspeed * ((runstate + 1) / 2);
             isWallClimbing = true;
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, wallRunSpeed);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, wallRunSpeed*((runstate+1)/2));
         }
         else
         {
             if (isWallClimbing)
             {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0);
-                isWallClimbing = false;
+               StartCoroutine(WallClimbing_Check());
             }
           
         }
     }
 
-    
-    
+
+    public IEnumerator WallClimbing_Check()
+    {
+       // rb.linearVelocity = new Vector2(preserved_velocity, wallRunSpeed);
+        yield return new WaitForSeconds(0.2f);
+        rb.linearVelocity = new Vector2(preserved_velocity, 0);
+        isWallClimbing = false;
+    }
     
     
     private void Dust()//Ha elég gyorsan fut a játékos porzik a nyoma
@@ -157,10 +163,10 @@ public class player_movement : MonoBehaviour
             
            
         }
-        if (Input.GetKeyDown(KeyCode.Space)&&canJump)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             //Debug.Log(canJump);
-            if (!isWallClimbing)
+            if (!isWallClimbing&&canJump)
             {
                 canJump = false;
                 rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
@@ -168,9 +174,11 @@ public class player_movement : MonoBehaviour
             }
             else if(isWallClimbing)
             {
-                Vector3 jumpDirection = wallNormal + Vector3.up;
-                rb.linearVelocity = new Vector3(jumpDirection.x * wallJumpForce, wallJumpForce, jumpDirection.z * wallJumpForce);
+               
+                Vector2 jumpDirection =new Vector2(wallNormal.x,wallNormal.y) + Vector2.up;
+                rb.linearVelocity = new Vector2(jumpDirection.x * wallJumpForce, wallJumpForce);
                 isWallClimbing = false;
+                direction = -direction;
             }
             
         }
@@ -221,25 +229,7 @@ public class player_movement : MonoBehaviour
         isChangingSpeed = false;
     }
 
-    public IEnumerator WallClimbing()
-    {   rb.linearVelocity = new Vector2(0f,rb.linearVelocity.y);
-        int runstatePreserve = runstate;
-       // rb.AddForce(new Vector2(0,0.08f), ForceMode2D.Impulse);
-        while (isNextToWall())
-        {
-            
-            rb.AddForce(new Vector2(0,0.015f*runstatePreserve), ForceMode2D.Impulse);
-            yield return new WaitForSeconds(0.01f);
-        }
-        runstate = runstatePreserve;
-        yield return new WaitForSeconds(0.2f);
-       
-        rb.AddForce(direction*walkspeed*((runstate+1)), ForceMode2D.Force);
-        yield return new WaitForSeconds(0.2f);
-        rb.AddForce(new Vector2(0,-0.5f), ForceMode2D.Impulse);
-        isWallClimbing = false;
-        
-    }
+    
     private void MovePlayer()
     {
         if (!isWallClimbing)
