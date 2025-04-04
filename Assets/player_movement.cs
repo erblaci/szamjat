@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -26,6 +27,8 @@ public class player_movement : MonoBehaviour
    
    private bool isTouchingWall;
    private Vector3 wallNormal;
+   private bool inFastFall=false;
+   private Vector2 WallJumpDirection=Vector2.right;
     private void Awake()
     {
         
@@ -40,10 +43,11 @@ public class player_movement : MonoBehaviour
         Dust();
         CheckForWall();
         HandleWallRun();
+        CheckForFalling();
         
     }
 
-    void CheckForWall()
+    void CheckForWall() //csekkolja ,hogy vannak falak,amikre lehet felfutni
     {
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.right, out hit, wallDetectionDistance, wallLayer))
@@ -62,7 +66,7 @@ public class player_movement : MonoBehaviour
         }
     }
 
-    void HandleWallRun()
+    void HandleWallRun() 
     {
         if (isNextToWall() && isRunning)
         {
@@ -80,8 +84,26 @@ public class player_movement : MonoBehaviour
         }
     }
 
+    public void CheckForFalling() //ha sokat vagy a levegőben akkor gyorsabban esel le
+    {
+        if (!isOnGround()&&!isWallClimbing&&!inFastFall)
+        {
+            inFastFall = true;
+            StartCoroutine(FastFalling());
+        }
+    }
+    public IEnumerator FastFalling()
+    {
+        yield return new WaitForSeconds(0.5f);
+        if (!isOnGround()&&!isWallClimbing)
+        {
+            Debug.Log("fastfalling");
+            rb.AddForce(Vector2.down*3f, ForceMode2D.Impulse);
+        }
+       inFastFall = false;
+    }
 
-    public IEnumerator WallClimbing_Check()
+    public IEnumerator WallClimbing_Check() //csekkolja,hogy még mindig futsz-e a falon és ha nem akkor vissza rak a rendes futás módba
     {
        // rb.linearVelocity = new Vector2(preserved_velocity, wallRunSpeed);
         yield return new WaitForSeconds(0.2f);
@@ -92,12 +114,12 @@ public class player_movement : MonoBehaviour
     
     private void Dust()//Ha elég gyorsan fut a játékos porzik a nyoma
     {
-        if (runstate>1&&!dust_particle.isPlaying)
+        if (runstate>1&&!dust_particle.isPlaying&&isOnGround())
         {
           //  Debug.Log("Dust");
             dust_particle.Play();
         }
-        else if(runstate==1&&dust_particle.isPlaying)
+        else if(runstate==1||dust_particle.isPlaying||!isOnGround())
         {
            dust_particle.Stop();
         }
@@ -125,7 +147,7 @@ public class player_movement : MonoBehaviour
         return false;
     }
 
-    public IEnumerator ChangeDirectionCD()
+    public IEnumerator ChangeDirectionCD()//ha irányt váltasz futás közben megállit és megforditja az irányod.
     {
         int runstate_preserved = runstate;
        
@@ -144,25 +166,51 @@ public class player_movement : MonoBehaviour
     {
         float hor = Input.GetAxisRaw("Horizontal");
         movement = new Vector2(hor, 0f);
-        if (hor<0)
+        if (!isWallClimbing)
         {
-            if (direction == Vector2.right)
+            if (hor<0)
             {
-                direction = Vector2.left;
-                StartCoroutine(ChangeDirectionCD());
-            }
+                if (direction == Vector2.right)
+                {
+                    direction = Vector2.left;
+                    StartCoroutine(ChangeDirectionCD());
+                }
             
             
-        }else if (hor > 0)
-        {
-            if (direction == Vector2.left)
+            }else if (hor > 0)
             {
-                direction = Vector2.right;
-                StartCoroutine(ChangeDirectionCD());
-            }
+                if (direction == Vector2.left)
+                {
+                    direction = Vector2.right;
+                    StartCoroutine(ChangeDirectionCD());
+                }
             
            
+            }
         }
+        else
+        {
+            if (hor<0)
+            {
+                if (WallJumpDirection == Vector2.right)
+                {
+                    WallJumpDirection = Vector2.left;
+                    
+                }
+            
+            
+            }else if (hor > 0)
+            {
+                if (WallJumpDirection == Vector2.left)
+                {
+                    WallJumpDirection = Vector2.right;
+                    
+                }
+            
+           
+            }
+        }
+       
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //Debug.Log(canJump);
@@ -172,7 +220,7 @@ public class player_movement : MonoBehaviour
                 rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
                 canJump = true;
             }
-            else if(isWallClimbing)
+            else if(isWallClimbing&&WallJumpDirection!=direction)
             {
                
                 Vector2 jumpDirection =new Vector2(wallNormal.x,wallNormal.y) + Vector2.up;
@@ -212,17 +260,17 @@ public class player_movement : MonoBehaviour
         }*/
     }
 
-    public IEnumerator ChangeRunstate()
+    public IEnumerator ChangeRunstate()//ha eleget futsz lassitás nélkül,akkor felgyorsulsz,elenkező esetben lelassulsz.
     {
         isChangingSpeed = true;
         yield return new WaitForSeconds(2f);
-        if (isRunning&&rb.linearVelocity.x>0.2f&&runstate<4&&isOnGround())
+        if (isRunning&&rb.linearVelocity.x>0.5f&&runstate<4&&isOnGround())
         {
             Debug.Log(runstate);
             runstate++;
         }
 
-        if (rb.linearVelocity.x<0.2f&&isChangingSpeed&&!isWallClimbing)
+        if (rb.linearVelocity.x<0.5f&&isChangingSpeed&&!isWallClimbing)
         {
             runstate--;
         }
