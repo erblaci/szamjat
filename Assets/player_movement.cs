@@ -18,7 +18,7 @@ public class player_movement : MonoBehaviour
     bool isChangingDirection = false;
    [SerializeField] private ParticleSystem dust_particle;
    [SerializeField] private BoxCollider2D grab_hitbox;
-    
+    [SerializeField] private SpriteRenderer character_sprite;
    public float wallRunSpeed = 20f;
    public float wallJumpForce = 8f;
    public float wallDetectionDistance = 2f;
@@ -47,6 +47,7 @@ public class player_movement : MonoBehaviour
         
     }
 
+    
     void CheckForWall() //csekkolja ,hogy vannak falak,amikre lehet felfutni
     {
         RaycastHit hit;
@@ -126,7 +127,7 @@ public class player_movement : MonoBehaviour
     }
     private bool isOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up*-1f, 0.6f,LayerMask.GetMask("Ground"));
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up*-1f, 1.4f,LayerMask.GetMask("Ground"));
        
         if (hit.collider != null)
         {
@@ -137,7 +138,7 @@ public class player_movement : MonoBehaviour
     }
     private bool isNextToWall()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position-transform.up*-0.5f, direction, 0.6f,LayerMask.GetMask("Ground"));
+        RaycastHit2D hit = Physics2D.Raycast(transform.position-transform.up*-0.5f, direction, 1.4f,LayerMask.GetMask("Ground"));
 
         if (hit.collider != null)
         {
@@ -172,6 +173,7 @@ public class player_movement : MonoBehaviour
             {
                 if (direction == Vector2.right)
                 {
+                    character_sprite.flipX = true;
                     direction = Vector2.left;
                     StartCoroutine(ChangeDirectionCD());
                 }
@@ -181,6 +183,7 @@ public class player_movement : MonoBehaviour
             {
                 if (direction == Vector2.left)
                 {
+                    character_sprite.flipX = false;
                     direction = Vector2.right;
                     StartCoroutine(ChangeDirectionCD());
                 }
@@ -227,6 +230,13 @@ public class player_movement : MonoBehaviour
                 rb.linearVelocity = new Vector2(jumpDirection.x * wallJumpForce, wallJumpForce);
                 isWallClimbing = false;
                 direction = -direction;
+                if (direction==Vector2.right)
+                {
+                    character_sprite.flipX = false;
+                }else if (direction == Vector2.left)
+                {
+                    character_sprite.flipX = true;
+                }
             }
             
         }
