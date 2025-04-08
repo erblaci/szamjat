@@ -24,6 +24,9 @@ public class player_movement : MonoBehaviour
    public float wallDetectionDistance = 2f;
    public LayerMask wallLayer;
    private float preserved_velocity = 0;
+
+   private float coyote_time_max = 0.18f;
+   private float coyote_time = 0.18f;
    
    private bool isTouchingWall;
    private Vector3 wallNormal;
@@ -165,6 +168,14 @@ public class player_movement : MonoBehaviour
     }
     private void GetInput()
     {
+        if (isOnGround())
+        {
+            coyote_time = coyote_time_max;
+        }
+        else
+        {
+            coyote_time-=Time.deltaTime;
+        }
         float hor = Input.GetAxisRaw("Horizontal");
         movement = new Vector2(hor, 0f);
         if (!isWallClimbing)
@@ -217,7 +228,7 @@ public class player_movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //Debug.Log(canJump);
-            if (!isWallClimbing&&canJump)
+            if (!isWallClimbing&&coyote_time>0)
             {
                 canJump = false;
                 rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
