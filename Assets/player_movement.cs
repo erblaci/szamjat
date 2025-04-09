@@ -324,7 +324,8 @@ public class player_movement : MonoBehaviour
     {
         if (other.tag == "Map_exit")  //ha a cube tagje Map_exit
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1); //Akkor a mostanitól eggyel kövi scenere ugrás
+            SceneManager.LoadScene("Hub_World"); //Akkor a mostanitól eggyel kövi scenere ugrás
         }
     }
+    //
 }
