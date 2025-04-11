@@ -237,7 +237,7 @@ public class player_movement : MonoBehaviour
             if (!isWallClimbing&&coyote_time>0)
             {
                 canJump = false;
-                rb.AddForce(new Vector2(0f, 8f), ForceMode2D.Impulse);
+                rb.AddForce(new Vector2(0f, 4f), ForceMode2D.Impulse);
                 canJump = true;
             }
             else if(isWallClimbing&&WallJumpDirection!=direction)
@@ -257,7 +257,20 @@ public class player_movement : MonoBehaviour
             }
             
         }
-        if (Input.GetKey(KeyCode.LeftShift))
+
+        if (!isOnGround()&&Input.GetKeyDown(KeyCode.S))
+        {
+            if (!(Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.D)))
+            {
+                GroundPound();
+            }
+            else
+            {
+                Dive();
+            }
+            
+        }
+        if (Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift))
         {
             isRunning = true;
         }
@@ -296,6 +309,18 @@ public class player_movement : MonoBehaviour
         rb.AddForce(direction*6,ForceMode2D.Impulse);
         yield return new WaitForSeconds(1.5f);
         
+    }
+
+    public void GroundPound()
+    {
+       rb.linearVelocityX = 0;
+      rb.AddForce(Vector2.down*20, ForceMode2D.Impulse);
+      rb.linearVelocityX = 0;
+    }
+
+    public void Dive()
+    {
+        rb.AddForce(new Vector2(direction.x*10,-10), ForceMode2D.Impulse);
     }
     public IEnumerator ChangeRunstate()//ha eleget futsz lassitás nélkül,akkor felgyorsulsz,elenkező esetben lelassulsz.
     {
