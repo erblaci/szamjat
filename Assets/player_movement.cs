@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,6 +29,7 @@ public class player_movement : MonoBehaviour
    private float coyote_time_max = 0.18f;
    private float coyote_time = 0.18f;
    
+   private bool canDash = true;
    private bool isTouchingWall;
    private Vector3 wallNormal;
    private bool inFastFall=false;
@@ -224,7 +226,11 @@ public class player_movement : MonoBehaviour
            
             }
         }
-       
+
+        if(Input.GetKeyDown(KeyCode.X)&&canDash)
+        {
+            StartCoroutine("Dash");
+        }
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //Debug.Log(canJump);
@@ -267,7 +273,11 @@ public class player_movement : MonoBehaviour
             StartCoroutine(ChangeRunstate());
         }
 
-        
+        if (isOnGround())
+        {
+            canDash = true;
+        }
+       
 
      /*   if (isNextToWall()&&!isOnGround()&&isRunning&&!isWallClimbing)
         {
@@ -280,7 +290,13 @@ public class player_movement : MonoBehaviour
             StopCoroutine(WallClimbing());
         }*/
     }
-
+    public IEnumerator Dash()
+    {
+        canDash=false;
+        rb.AddForce(direction*6,ForceMode2D.Impulse);
+        yield return new WaitForSeconds(1.5f);
+        
+    }
     public IEnumerator ChangeRunstate()//ha eleget futsz lassitás nélkül,akkor felgyorsulsz,elenkező esetben lelassulsz.
     {
         isChangingSpeed = true;
@@ -327,5 +343,5 @@ public class player_movement : MonoBehaviour
             SceneManager.LoadScene("Hub_World"); //Akkor a mostanitól eggyel kövi scenere ugrás
         }
     }
-    //
+   
 }
