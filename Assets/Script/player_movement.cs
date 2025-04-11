@@ -29,6 +29,8 @@ public class player_movement : MonoBehaviour
    private float coyote_time_max = 0.18f;
    private float coyote_time = 0.18f;
    
+   private bool isWpressed = false;
+   private bool IsSuperJumping=false;
    private bool canDash = true;
    private bool isTouchingWall;
    private Vector3 wallNormal;
@@ -170,6 +172,7 @@ public class player_movement : MonoBehaviour
     }
     private void GetInput()
     {
+        isWpressed = Input.GetKey(KeyCode.W);
         if (isOnGround())
         {
             coyote_time = coyote_time_max;
@@ -270,6 +273,11 @@ public class player_movement : MonoBehaviour
             }
             
         }
+
+        if (Input.GetKeyDown(KeyCode.W)&&runstate>1&&!IsSuperJumping)
+        {
+            SuperJump();
+        }
         if (Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift))
         {
             isRunning = true;
@@ -303,6 +311,29 @@ public class player_movement : MonoBehaviour
             StopCoroutine(WallClimbing());
         }*/
     }
+
+    private void SuperJump()
+    {
+        IsSuperJumping = true;
+        
+        rb.linearVelocity=new Vector2(0,rb.linearVelocity.y);
+      /* while (IsSuperJumping)
+        {
+            
+            canJump = false;
+            isRunning = false;
+            if (Input.GetKeyUp(KeyCode.W))
+            {
+                IsSuperJumping = false;
+            }
+        }*/
+            
+        
+        canJump = true;
+        canDash = true;
+      
+    }
+
     public IEnumerator Dash()
     {
         canDash=false;
