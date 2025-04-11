@@ -278,6 +278,18 @@ public class player_movement : MonoBehaviour
         {
             SuperJump();
         }
+        if (Input.GetKey(KeyCode.W) && IsSuperJumping)
+        {
+            
+
+            // Allow slow horizontal movement
+            float horizontalInput = Input.GetAxisRaw("Horizontal");
+            rb.linearVelocity = new Vector2(horizontalInput * 1.5f, rb.linearVelocity.y);
+        }
+        if (Input.GetKeyUp(KeyCode.W) && IsSuperJumping)
+        {
+            ReleaseJump();
+        }
         if (Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift))
         {
             isRunning = true;
@@ -312,26 +324,21 @@ public class player_movement : MonoBehaviour
         }*/
     }
 
+    private void ReleaseJump()
+    {
+        float finalForce = 30; 
+       
+        rb.velocity = new Vector2(rb.velocity.x, 0); 
+        rb.AddForce(Vector2.up * finalForce, ForceMode2D.Impulse);
+        IsSuperJumping = false;
+    }
+
     private void SuperJump()
     {
         IsSuperJumping = true;
         
-        rb.linearVelocity=new Vector2(0,rb.linearVelocity.y);
-      /* while (IsSuperJumping)
-        {
-            
-            canJump = false;
-            isRunning = false;
-            if (Input.GetKeyUp(KeyCode.W))
-            {
-                IsSuperJumping = false;
-            }
-        }*/
-            
+        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Freeze horizontal movement
         
-        canJump = true;
-        canDash = true;
-      
     }
 
     public IEnumerator Dash()
@@ -356,7 +363,7 @@ public class player_movement : MonoBehaviour
     public IEnumerator ChangeRunstate()//ha eleget futsz lassitás nélkül,akkor felgyorsulsz,elenkező esetben lelassulsz.
     {
         isChangingSpeed = true;
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(1f);
         if (isRunning&&rb.linearVelocity.x>0.5f&&runstate<4&&isOnGround())
         {
             Debug.Log(runstate);
