@@ -1,31 +1,63 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 public class TP_Box : MonoBehaviour
 {
-    [SerializeField] private Transform ExitPoint;
-    [SerializeField] private TP_Box ExitBOX;
-    bool isPlayerOnTop = false;
-    private player_movement playerMovement;
+    [SerializeField] private TP_Box ExitBox;
+    public Transform exitPoint;          
+    public float warpDelay = 0.3f;        // Optional delay before teleport
+    public KeyCode warpKey = KeyCode.S;   // Default is down arrow/S
+
+    private bool playerInPipe = false;
+    private GameObject player;
+
+
+    private void Awake()
+    {
+        player=GameObject.FindGameObjectWithTag("Player");
+    }
+
     void Update()
     {
-        isPlayerOnTop = CheckForPlayer();
-        if (Input.GetKeyDown(KeyCode.S)&&isPlayerOnTop)
+        if (playerInPipe && Input.GetKeyDown(warpKey))
         {
-            playerMovement.transform.position = ExitBOX.ExitPoint.transform.position;
+            StartCoroutine(WarpPlayer());
         }
     }
 
-    private bool CheckForPlayer()
+   public IEnumerator WarpPlayer()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 2);
-        if (hit.collider != null)
+        // Optional: play animation or sound here
+
+        // Freeze player briefly
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+        rb.velocity = Vector2.zero;
+        rb.isKinematic = true;
+
+        yield return new WaitForSeconds(warpDelay);
+
+        // Move player to the exit point
+        player.transform.position = ExitBox.exitPoint.position;
+
+        rb.isKinematic = false;
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
         {
-            if (hit.collider.tag == "Player")
-            {
-                playerMovement = hit.collider.gameObject.GetComponent<player_movement>();
-                return true;
-            }
+            playerInPipe = true;
+            player = other.gameObject;
         }
-        return false;
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInPipe = false;
+            player = null;
+        }
     }
 }
