@@ -17,6 +17,17 @@ public class player_movement : MonoBehaviour
     bool canJump = true;
     bool isWallClimbing = false;
     bool isChangingDirection = false;
+    
+    //keybinds
+    
+    KeyCode LeftKey = KeyCode.A;
+    KeyCode RightKey = KeyCode.D;
+    KeyCode JumpKey = KeyCode.Space;
+    KeyCode RunKey = KeyCode.LeftShift;
+    
+    
+    
+    
    [SerializeField] private ParticleSystem dust_particle;
    [SerializeField] private BoxCollider2D grab_hitbox;
     [SerializeField] private SpriteRenderer character_sprite;
@@ -28,6 +39,10 @@ public class player_movement : MonoBehaviour
 
    private float coyote_time_max = 0.18f;
    private float coyote_time = 0.18f;
+
+   //PauseMenu
+   [SerializeField] private GameObject PauseMenu;
+   private bool isGamePaused = false;
    
    private bool isWpressed = false;
    private bool IsSuperJumping=false;
@@ -42,9 +57,24 @@ public class player_movement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    private void Update()
+    private void Pause()
+    {
+        Time.timeScale = 0;
+    }
+
+    public void Resume()
+    {
+        Time.timeScale = 1;
+        isGamePaused = false;
+        PauseMenu.SetActive(false);
+    }
+    private void CheckForRebind()
     {
         
+    }
+    private void Update()
+    {
+            
         GetInput();
         MovePlayer();
         Dust();
@@ -172,6 +202,20 @@ public class player_movement : MonoBehaviour
     }
     private void GetInput()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            isGamePaused=!isGamePaused;
+            if (isGamePaused)
+            {
+                Pause();
+            }
+            else
+            {
+                Resume();
+            }
+            PauseMenu.SetActive(isGamePaused);
+            
+        }
         isWpressed = Input.GetKey(KeyCode.W);
         if (isOnGround())
         {
