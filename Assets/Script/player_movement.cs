@@ -48,6 +48,7 @@ public class player_movement : MonoBehaviour
    private bool IsSuperJumping=false;
    private bool canDash = true;
    private bool isTouchingWall;
+   private bool canCancelSuperJump = true;
    private Vector3 wallNormal;
    private bool inFastFall=false;
    private Vector2 WallJumpDirection=Vector2.right;
@@ -74,7 +75,7 @@ public class player_movement : MonoBehaviour
     }
     private void Update()
     {
-            
+        SpeedDebug();
         GetInput();
         MovePlayer();
         Dust();
@@ -141,6 +142,25 @@ public class player_movement : MonoBehaviour
        inFastFall = false;
     }
 
+    public void SpeedDebug()
+    {
+        if (runstate==0)
+        {
+            character_sprite.color = Color.white;
+        }
+        if (runstate==1)
+        {
+            character_sprite.color = Color.green;
+        }
+        if (runstate==2)
+        {
+            character_sprite.color = Color.yellow;
+        }
+        if (runstate==3)
+        {
+            character_sprite.color = Color.red;
+        }
+    }
     public IEnumerator WallClimbing_Check() //csekkolja,hogy még mindig futsz-e a falon és ha nem akkor vissza rak a rendes futás módba
     {
        // rb.linearVelocity = new Vector2(preserved_velocity, wallRunSpeed);
@@ -318,14 +338,16 @@ public class player_movement : MonoBehaviour
             
         }
 
-        if (Input.GetKeyDown(KeyCode.W)&&runstate>1&&!IsSuperJumping)
+        if (Input.GetKeyDown(KeyCode.W)&&runstate>1&&!IsSuperJumping&&isOnGround())
         {
+            canCancelSuperJump = false;
+            preserved_velocity=rb.linearVelocityX/2;
             SuperJump();
         }
         if (Input.GetKey(KeyCode.W) && IsSuperJumping)
         {
             
-
+            
             // Allow slow horizontal movement
             float horizontalInput = Input.GetAxisRaw("Horizontal");
             rb.linearVelocity = new Vector2(horizontalInput * 1.5f, rb.linearVelocity.y);
@@ -354,8 +376,33 @@ public class player_movement : MonoBehaviour
         {
             canDash = true;
         }
-       
 
+        if (IsSuperJumping)
+        {
+            if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))&&canCancelSuperJump)
+            {
+                if (Input.GetKey(KeyCode.A))
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, 0); 
+                    IsSuperJumping=false;
+                    rb.AddForce(new Vector2(Math.Abs(preserved_velocity)*-1, 0f), ForceMode2D.Impulse);
+                    
+                }
+                if (Input.GetKey(KeyCode.D))
+                {
+                    rb.velocity = new Vector2(rb.velocity.x, 0); 
+                    IsSuperJumping=false;
+                    rb.AddForce(new Vector2(Math.Abs(preserved_velocity), 0f), ForceMode2D.Impulse);
+                    
+                }
+            }
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up, 1.4f,LayerMask.GetMask("Ground"));
+            if (hit.collider != null)
+            {
+                IsSuperJumping = false;
+            }
+            
+        }
      /*   if (isNextToWall()&&!isOnGround()&&isRunning&&!isWallClimbing)
         {
             isWallClimbing = true;
@@ -368,13 +415,19 @@ public class player_movement : MonoBehaviour
         }*/
     }
 
+    public IEnumerator SuperJumpCancelCD()
+    {
+        canDash=false;
+        yield return new WaitForSeconds(0.5f);
+        canCancelSuperJump = true;
+    }
     private void ReleaseJump()
     {
         float finalForce = 30; 
-       
+       StartCoroutine(SuperJumpCancelCD());
         rb.velocity = new Vector2(rb.velocity.x, 0); 
         rb.AddForce(Vector2.up * finalForce, ForceMode2D.Impulse);
-        IsSuperJumping = false;
+       
     }
 
     private void SuperJump()
@@ -414,7 +467,7 @@ public class player_movement : MonoBehaviour
             runstate++;
         }
 
-        if (rb.linearVelocity.x<0.5f&&isChangingSpeed&&!isWallClimbing)
+        if (rb.linearVelocity.x<0.5f&&isChangingSpeed&&!isWallClimbing&&!IsSuperJumping)
         {
             runstate--;
         }
