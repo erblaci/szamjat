@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,14 +19,30 @@ public class player_movement : MonoBehaviour
     bool isWallClimbing = false;
     bool isChangingDirection = false;
     
+    //Debug
+   public TMPro.TextMeshProUGUI playerStateDebug;
     //keybinds
     
-    KeyCode LeftKey = KeyCode.A;
-    KeyCode RightKey = KeyCode.D;
+    KeyCode LeftKey = KeyCode.LeftArrow;
+    KeyCode RightKey = KeyCode.RightArrow;
     KeyCode JumpKey = KeyCode.Space;
     KeyCode RunKey = KeyCode.LeftShift;
-    
-    
+
+    public PlayerState playerState;
+    public enum PlayerState
+    {
+        Idle,
+        Walking,
+        Running,
+        Mach1,
+        Mach2,
+        Mach3,
+        WallRunning,
+        inAir,
+        GroundPounding,
+        SuperJumpStart,
+        SuperJumpEnd,
+    }
     
     
    [SerializeField] private ParticleSystem dust_particle;
@@ -44,6 +61,7 @@ public class player_movement : MonoBehaviour
    [SerializeField] private GameObject PauseMenu;
    private bool isGamePaused = false;
    
+   private bool isGroundPounding = false;
    private bool isWpressed = false;
    private bool IsSuperJumping=false;
    private bool canDash = true;
@@ -52,6 +70,8 @@ public class player_movement : MonoBehaviour
    private Vector3 wallNormal;
    private bool inFastFall=false;
    private Vector2 WallJumpDirection=Vector2.right;
+   
+   
     private void Awake()
     {
         
@@ -63,6 +83,32 @@ public class player_movement : MonoBehaviour
         Time.timeScale = 0;
     }
 
+    public IEnumerator SpeedControl()
+    {
+        
+        if (isOnGround())
+        {
+            if (!isWallClimbing)
+            {
+                if (Math.Abs(rb.linearVelocity.x) > runstate*walkspeed&&runstate<4)
+                {
+                    runstate++;
+                }
+                else
+                {
+                    yield return new WaitForSeconds(2);
+                    if (Math.Abs(rb.linearVelocity.x) > runstate*walkspeed&&runstate<4)
+                    {
+                        runstate++;
+                    }
+                    else
+                    {
+                        runstate--;
+                    }
+                }
+            }
+        }
+    }
     public void Resume()
     {
         Time.timeScale = 1;
@@ -73,8 +119,50 @@ public class player_movement : MonoBehaviour
     {
         
     }
+
+    public void ChangePlayerState()
+    {
+        if (isOnGround())
+        {
+            isGroundPounding = false;
+        }
+        if (playerState!= PlayerState.SuperJumpEnd&&!isWallClimbing&&!isOnGround()&&playerState!= PlayerState.SuperJumpStart&&!isGroundPounding)
+        {
+            playerState = PlayerState.inAir;
+        }else
+        if (rb.linearVelocity==Vector2.zero)
+        {
+            playerState = PlayerState.Idle;
+        }else
+
+        if (Math.Abs(rb.linearVelocityX)>0&&Math.Abs(rb.linearVelocityX)<=walkspeed&&!isRunning)
+        {
+            playerState = PlayerState.Walking;
+        }else
+
+        if (Math.Abs(rb.linearVelocityX)>walkspeed&&isRunning)
+        {
+            playerState = PlayerState.Running;
+        }else if (IsSuperJumping)
+        {
+            playerState = PlayerState.SuperJumpStart;
+        }else if (canCancelSuperJump&&!isOnGround()&&!isWallClimbing)
+        {
+            playerState = PlayerState.SuperJumpEnd;
+        }else if (isWallClimbing)
+        {
+            playerState = PlayerState.WallRunning;
+        }
+
+        if (isGroundPounding)
+        {
+            playerState = PlayerState.GroundPounding;
+        }
+        playerStateDebug.text = playerState.ToString();
+    }
     private void Update()
     {
+        ChangePlayerState();
         SpeedDebug();
         GetInput();
         MovePlayer();
@@ -107,7 +195,7 @@ public class player_movement : MonoBehaviour
 
     void HandleWallRun() 
     {
-        if (isNextToWall() && isRunning)
+        if (isNextToWall() && isRunning&&!isGroundPounding)
         {
             preserved_velocity = direction.x * walkspeed * ((runstate + 1) / 2);
             isWallClimbing = true;
@@ -136,7 +224,7 @@ public class player_movement : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         if (!isOnGround()&&!isWallClimbing)
         {
-            Debug.Log("fastfalling");
+            
             rb.AddForce(Vector2.down*3f, ForceMode2D.Impulse);
         }
        inFastFall = false;
@@ -144,19 +232,19 @@ public class player_movement : MonoBehaviour
 
     public void SpeedDebug()
     {
-        if (runstate==0)
+        if (runstate==1)
         {
             character_sprite.color = Color.white;
         }
-        if (runstate==1)
+        if (runstate==2)
         {
             character_sprite.color = Color.green;
         }
-        if (runstate==2)
+        if (runstate==3)
         {
             character_sprite.color = Color.yellow;
         }
-        if (runstate==3)
+        if (runstate==4)
         {
             character_sprite.color = Color.red;
         }
@@ -184,14 +272,14 @@ public class player_movement : MonoBehaviour
     }
     private bool isOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up*-1f, 1.4f,LayerMask.GetMask("Ground"));
-       
-        if (hit.collider != null)
-        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up*-1f, 1.4f,LayerMask.GetMask("Ground"));
            
-            return true;
-        }
-        return false;
+            if (hit.collider != null)
+            {
+               
+                return true;
+            }
+            return false;
     }
     private bool isNextToWall()
     {
@@ -301,13 +389,13 @@ public class player_movement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //Debug.Log(canJump);
-            if (!isWallClimbing&&coyote_time>0)
+            if (playerState != PlayerState.WallRunning&&coyote_time>0)
             {
                 canJump = false;
                 rb.AddForce(new Vector2(0f, 4f), ForceMode2D.Impulse);
                 canJump = true;
             }
-            else if(isWallClimbing&&WallJumpDirection!=direction)
+            else if(playerState == PlayerState.WallRunning&&WallJumpDirection!=direction)
             {
                
                 Vector2 jumpDirection =new Vector2(wallNormal.x,wallNormal.y) + Vector2.up;
@@ -325,37 +413,22 @@ public class player_movement : MonoBehaviour
             
         }
 
-        if (!isOnGround()&&Input.GetKeyDown(KeyCode.S))
+        if (playerState == PlayerState.inAir&&Input.GetKeyDown(KeyCode.S))
         {
-            if (!(Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.D)))
+            if (!(Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.D))&&FarGroundCheck())
             {
+                isGroundPounding=true;
                 GroundPound();
             }
-            else
+            else if(FarGroundCheck())
             {
                 Dive();
             }
             
         }
 
-        if (Input.GetKeyDown(KeyCode.W)&&runstate>1&&!IsSuperJumping&&isOnGround())
-        {
-            canCancelSuperJump = false;
-            preserved_velocity=rb.linearVelocityX/2;
-            SuperJump();
-        }
-        if (Input.GetKey(KeyCode.W) && IsSuperJumping)
-        {
-            
-            
-            // Allow slow horizontal movement
-            float horizontalInput = Input.GetAxisRaw("Horizontal");
-            rb.linearVelocity = new Vector2(horizontalInput * 1.5f, rb.linearVelocity.y);
-        }
-        if (Input.GetKeyUp(KeyCode.W) && IsSuperJumping)
-        {
-            ReleaseJump();
-        }
+       
+        
         if (Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift))
         {
             isRunning = true;
@@ -367,12 +440,9 @@ public class player_movement : MonoBehaviour
         }
 
         canJump = isOnGround();
-        if (isRunning&&rb.linearVelocity.x >0&&!isChangingSpeed&&isOnGround())
-        {
-            StartCoroutine(ChangeRunstate());
-        }
+        
 
-        if (isOnGround())
+        if (playerState != PlayerState.inAir)
         {
             canDash = true;
         }
@@ -383,14 +453,14 @@ public class player_movement : MonoBehaviour
             {
                 if (Input.GetKey(KeyCode.A))
                 {
-                    rb.velocity = new Vector2(rb.velocity.x, 0); 
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0); 
                     IsSuperJumping=false;
                     rb.AddForce(new Vector2(Math.Abs(preserved_velocity)*-1, 0f), ForceMode2D.Impulse);
                     
                 }
                 if (Input.GetKey(KeyCode.D))
                 {
-                    rb.velocity = new Vector2(rb.velocity.x, 0); 
+                    rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0); 
                     IsSuperJumping=false;
                     rb.AddForce(new Vector2(Math.Abs(preserved_velocity), 0f), ForceMode2D.Impulse);
                     
@@ -425,18 +495,23 @@ public class player_movement : MonoBehaviour
     {
         float finalForce = 30; 
        StartCoroutine(SuperJumpCancelCD());
-        rb.velocity = new Vector2(rb.velocity.x, 0); 
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0); 
         rb.AddForce(Vector2.up * finalForce, ForceMode2D.Impulse);
        
     }
 
-    private void SuperJump()
+    private bool FarGroundCheck()
     {
-        IsSuperJumping = true;
-        
-        rb.linearVelocity = new Vector2(0, rb.linearVelocity.y); // Freeze horizontal movement
-        
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up*-1f, 4f,LayerMask.GetMask("Ground"));
+       
+        if (hit.collider != null)
+        {
+           
+            return false;
+        }
+        return true; 
     }
+    
 
     public IEnumerator Dash()
     {
@@ -457,22 +532,7 @@ public class player_movement : MonoBehaviour
     {
         rb.AddForce(new Vector2(direction.x*10,-10), ForceMode2D.Impulse);
     }
-    public IEnumerator ChangeRunstate()//ha eleget futsz lassitás nélkül,akkor felgyorsulsz,elenkező esetben lelassulsz.
-    {
-        isChangingSpeed = true;
-        yield return new WaitForSeconds(1f);
-        if (isRunning&&rb.linearVelocity.x>0.5f&&runstate<4&&isOnGround())
-        {
-            Debug.Log(runstate);
-            runstate++;
-        }
-
-        if (rb.linearVelocity.x<0.5f&&isChangingSpeed&&!isWallClimbing&&!IsSuperJumping)
-        {
-            runstate--;
-        }
-        isChangingSpeed = false;
-    }
+    
 
     
     private void MovePlayer()

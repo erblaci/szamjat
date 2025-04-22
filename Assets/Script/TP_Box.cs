@@ -32,7 +32,7 @@ public class TP_Box : MonoBehaviour
 
         // Freeze player briefly
         Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         rb.isKinematic = true;
 
         yield return new WaitForSeconds(warpDelay);
