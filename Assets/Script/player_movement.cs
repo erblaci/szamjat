@@ -70,6 +70,7 @@ public class player_movement : MonoBehaviour
    private Vector3 wallNormal;
    private bool inFastFall=false;
    private Vector2 WallJumpDirection=Vector2.right;
+   bool isCheckingSpeed=false;
    
    
     private void Awake()
@@ -85,28 +86,35 @@ public class player_movement : MonoBehaviour
 
     public IEnumerator SpeedControl()
     {
-        
-        if (isOnGround())
+        if (!isCheckingSpeed)
         {
-            if (!isWallClimbing)
+
+
+            isCheckingSpeed = true;
+            if (isOnGround())
             {
-                if (Math.Abs(rb.linearVelocity.x) > runstate*walkspeed&&runstate<4)
+                if (!isWallClimbing)
                 {
-                    runstate++;
-                }
-                else
-                {
-                    yield return new WaitForSeconds(2);
-                    if (Math.Abs(rb.linearVelocity.x) > runstate*walkspeed&&runstate<4)
+                    if (Math.Abs(rb.linearVelocity.x) > runstate * walkspeed && runstate < 4)
                     {
                         runstate++;
                     }
                     else
                     {
-                        runstate--;
+                        yield return new WaitForSeconds(2);
+                        if (Math.Abs(rb.linearVelocity.x) > runstate * walkspeed && runstate < 4)
+                        {
+                            runstate++;
+                        }
+                        else
+                        {
+                            runstate--;
+                        }
                     }
                 }
             }
+
+            isCheckingSpeed = false;
         }
     }
     public void Resume()
@@ -162,6 +170,7 @@ public class player_movement : MonoBehaviour
     }
     private void Update()
     {
+        StartCoroutine(SpeedControl());
         ChangePlayerState();
         SpeedDebug();
         GetInput();
@@ -526,6 +535,7 @@ public class player_movement : MonoBehaviour
        rb.linearVelocityX = 0;
       rb.AddForce(Vector2.down*20, ForceMode2D.Impulse);
       rb.linearVelocityX = 0;
+      runstate = 1;
     }
 
     public void Dive()
