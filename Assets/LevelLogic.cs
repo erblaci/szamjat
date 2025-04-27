@@ -38,7 +38,7 @@ public class LevelLogic : MonoBehaviour
             int minutes = Mathf.FloorToInt(currentTime / 60);
             int seconds = Mathf.FloorToInt(currentTime % 60);
             timerGUI.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-            
+                
         
     }
     

@@ -739,6 +739,9 @@ MonoBehaviour:
   maxTime: 300
   currentTime: 0
   timerGUI: {fileID: 2093187096}
+  IsRunning: 0
+  IsEndTriggered: 0
+  BabiesFound: 0
 --- !u!4 &421937611
 Transform:
   m_ObjectHideFlags: 0
@@ -748,7 +751,7 @@ Transform:
   m_GameObject: {fileID: 421937609}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 349.09372, y: 225.80984, z: -0.8512715}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
