@@ -166,7 +166,7 @@ public class player_movement : MonoBehaviour
         {
             playerState = PlayerState.GroundPounding;
         }
-        playerStateDebug.text = playerState.ToString();
+//        playerStateDebug.text = playerState.ToString();
     }
     private void Update()
     {
