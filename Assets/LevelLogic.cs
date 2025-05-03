@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class LevelLogic : MonoBehaviour
@@ -69,5 +70,9 @@ public class LevelLogic : MonoBehaviour
        newBaby.transform.parent = player.transform;
        
     }
-    
+
+    public void QuitGame()
+    {
+        SceneManager.LoadScene("Main_Menu");
+    }
 }
