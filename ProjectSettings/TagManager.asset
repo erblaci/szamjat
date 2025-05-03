@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Map_exit
+  - Breakable
   layers:
   - Default
   - TransparentFX

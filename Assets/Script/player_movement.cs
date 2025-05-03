@@ -309,7 +309,16 @@ public class player_movement : MonoBehaviour
         isChangingDirection = true;
         if (rb.linearVelocityX!=null&&rb.linearVelocityX!=Mathf.Infinity&&rb.linearVelocityX!=-Mathf.Infinity)
         {
-            rb.linearVelocityX=rb.linearVelocityX/(4-runstate_preserved);
+            try
+            {
+                rb.linearVelocityX=rb.linearVelocityX/(4-runstate_preserved);
+            }
+            catch (Exception e)
+            {
+               // Console.WriteLine(e);
+                throw;
+            }
+            
         }
         
         yield return new WaitForSeconds(2f);

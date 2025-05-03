@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class LevelLogic : MonoBehaviour
 {
     public static LevelLogic instance;
+    public GameObject baby_prefab;
     public float maxTime = 300;
     public float currentTime;
     public TMPro.TextMeshProUGUI timerGUI;
@@ -50,6 +51,17 @@ public class LevelLogic : MonoBehaviour
         TimerBar.value = 1/maxTime*currentTime;
                 
         
+    }
+
+    public void AddBaby()
+    {
+        BabiesFound++;
+        GameObject player = GameObject.FindWithTag("Player");
+       GameObject newBaby = Instantiate(baby_prefab,player.transform.position+new Vector3(0,0.5f*BabiesFound,0), Quaternion.identity);
+       SpriteRenderer babySprite = newBaby.GetComponent<SpriteRenderer>();
+       babySprite.sortingOrder = 40 + BabiesFound;
+       newBaby.transform.parent = player.transform;
+       
     }
     
 }
