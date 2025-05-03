@@ -13,6 +13,8 @@ public class LevelLogic : MonoBehaviour
     public bool IsEndTriggered = false;
     public int BabiesFound = 0;
     public Slider TimerBar;
+    public int LevelScore = 0;
+    public TMPro.TextMeshProUGUI LevelScoreGUI;
 
     public void Awake()
     {
@@ -25,6 +27,7 @@ public class LevelLogic : MonoBehaviour
 
     private void Update()
     {
+        LevelScoreGUI.text = LevelScore.ToString();
         if (!IsRunning)
         {
             TimerBar.gameObject.SetActive(false);
@@ -37,8 +40,10 @@ public class LevelLogic : MonoBehaviour
         UpdateText();
         if (currentTime==0)
         {
+            //Game Over Screen
             IsRunning = false;
         }
+        
     }
 
     public void UpdateText()
@@ -55,6 +60,7 @@ public class LevelLogic : MonoBehaviour
 
     public void AddBaby()
     {
+        LevelScore+=1000;
         BabiesFound++;
         GameObject player = GameObject.FindWithTag("Player");
        GameObject newBaby = Instantiate(baby_prefab,player.transform.position+new Vector3(0,0.5f*BabiesFound,0), Quaternion.identity);
