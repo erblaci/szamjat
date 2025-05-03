@@ -20,7 +20,7 @@ public class player_movement : MonoBehaviour
     bool isChangingDirection = false;
     
     //Debug
-   public TMPro.TextMeshProUGUI playerStateDebug;
+   //public TMPro.TextMeshProUGUI playerStateDebug;
     //keybinds
     
     KeyCode LeftKey = KeyCode.LeftArrow;
@@ -172,7 +172,7 @@ public class player_movement : MonoBehaviour
     {
         StartCoroutine(SpeedControl());
         ChangePlayerState();
-        SpeedDebug();
+       // SpeedDebug();
         GetInput();
         MovePlayer();
         Dust();
