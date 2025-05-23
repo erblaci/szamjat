@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 
 public class player_movement : MonoBehaviour
 {
@@ -181,7 +182,7 @@ public class player_movement : MonoBehaviour
         CheckForFalling();
         
     }
-
+    
     
     void CheckForWall() //csekkolja ,hogy vannak falak,amikre lehet felfutni
     {
@@ -582,5 +583,36 @@ public class player_movement : MonoBehaviour
             SceneManager.LoadScene("Hub_World"); //Akkor a mostanitól eggyel kövi scenere ugrás
         }
     }
-   
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        if (other.gameObject.CompareTag("Breakable")&&(isGroundPounding||(isRunning&&runstate>2)))
+        {
+            Tilemap tilemap = other.gameObject.GetComponent<Tilemap>();
+            var tilePos=tilemap.WorldToCell(transform.position);
+            var tilePos2=tilemap.WorldToCell(transform.position);
+            if (direction==Vector2.right)
+            {
+                 tilePos = tilemap.WorldToCell(transform.position+Vector3.right*1);
+                 tilePos2 = tilemap.WorldToCell(transform.position+Vector3.right*2);
+            }
+            else
+            {
+                 tilePos = tilemap.WorldToCell(transform.position+Vector3.left*1);
+                 tilePos2 = tilemap.WorldToCell(transform.position+Vector3.left*2);
+            }
+            
+            
+           // Debug.Log("location:" + tilePos);
+            tilemap.SetTile(tilePos, null);
+            tilemap.SetTile(tilePos2, null);
+            tilemap.SetTile(new Vector3Int(tilePos.x, tilePos.y, tilePos.z), null);
+            tilePos = tilemap.WorldToCell(transform.position+Vector3.down);
+            tilePos2 = tilemap.WorldToCell(transform.position+Vector3.down+Vector3.right);
+            tilemap.SetTile(tilePos, null);
+            tilemap.SetTile(tilePos2, null);
+            tilePos2 = tilemap.WorldToCell(transform.position+Vector3.down+Vector3.left);
+            tilemap.SetTile(tilePos2, null);
+        }
+    }
 }

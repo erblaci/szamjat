@@ -5,7 +5,7 @@ public class Pickup : MonoBehaviour
 {
     private void Update()
     {
-        float y=Mathf.Sin(Time.time)/200+transform.position.y;
+        float y=Mathf.Sin(Time.time)/500+transform.position.y;
         transform.position = new Vector3(transform.position.x,y,transform.position.z);
     }
 
