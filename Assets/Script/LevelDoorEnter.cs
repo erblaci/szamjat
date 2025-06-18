@@ -1,12 +1,12 @@
 using System;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class LevelDoorEnter : MonoBehaviour
 {
     public string LevelToLoad;
-    public bool isPlayerTouching=false;
+    public bool isPlayerTouching = false;
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.tag == "Player")
@@ -17,12 +17,12 @@ public class LevelDoorEnter : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (other.gameObject.tag=="Player")
+        if (other.gameObject.tag == "Player")
         {
             isPlayerTouching = false;
         }
     }
-    
+
     private void Update()
     {
         if (!isPlayerTouching)
